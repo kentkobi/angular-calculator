@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html ng-app="calcApp">
+<head>  
+    <link rel="stylesheet" href="main.css">
+</head>
+<body translate="no" class="ng-cloak">
+    <form class="calc" ng-controller="calcController">
+        <p class="calc-display">
+            <input type="text" name="output" value="{{ calculator.displayedNum }}" class="calc-display-input" >
+        </p>
+        <div class="calc-keys">
+            <button type="action" class="calc-button calc-button-operator" ng-click="operator('divide')" >÷</button>
+            <button type="action" class="calc-button calc-button-operator" ng-click="operator('multiply')" >&times;</button>
+            <button type="action" class="calc-button calc-button-operator" ng-click="operator('subtract')" >-</button>
+            <button type="action" class="calc-button calc-button-operator" ng-click="operator('add')" >+</button>               
+            <button type="button" class="calc-button" ng-click="number('0')">0</button>
+            <button type="button" class="calc-button" ng-click="number('1')">1</button>
+            <button type="button" class="calc-button" ng-click="number('2')">2</button>
+            <button type="button" class="calc-button" ng-click="number('3')">3</button>
+            <button type="button" class="calc-button" ng-click="number('4')">4</button>
+            <button type="button" class="calc-button" ng-click="number('5')">5</button>
+            <button type="button" class="calc-button" ng-click="number('6')">6</button>
+            <button type="button" class="calc-button" ng-click="number('7')">7</button>
+            <button type="button" class="calc-button" ng-click="number('8')">8</button>
+            <button type="button" class="calc-button" ng-click="number('9')">9</button>
+            <button type="button" class="calc-button calc-button-decimal" ng-click="decimal()">.</button>
+            <button type="button" class="calc-button calc-button-clear" ng-click='clear()'>C</button>
+            <button type="button" class="calc-button calc-button-equal" ng-click="equal()">=</button>
+        </div>
+    </form>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script>
+
+    <script type="text/javascript">
+        // Declare the model
+        calcModel = {
+            displayedNum : '0',
+            previousKeyType : '',
+            firstValue : null,
+            operator : '',
+
+            reset: function() {
+            	this.displayedNum = '0',
+            	this.previousKeyType = '',
+            	this.firstValue = null,
+            	this.operator = ''
+			},
+
+            calculate : function(n1, operator, n2) {
+                var firstNum = parseFloat(n1)
+                var secondNum = parseFloat(n2)
+                if (operator === 'add') return firstNum + secondNum
+                if (operator === 'subtract') return firstNum - secondNum
+                if (operator === 'multiply') return firstNum * secondNum
+                if (operator === 'divide') return firstNum / secondNum
+            }
+        };
+
+        // declare the calculator-module
+        var calcApp = angular.module('calcApp', ['calcModule']);
+        var calcModule = angular.module('calcModule', []);
+        
+        // Add the calculator-controller to module
+        calcModule.controller('calcController', ['$scope', function ($scope) {
+            $scope.calculator = calcModel;
+
+            $scope.number = function (key) {
+                if(calcModel.displayedNum === '0' || calcModel.previousKeyType === 'operator' || calcModel.previousKeyType === 'calculate') {
+                    calcModel.displayedNum = key.toString()
+                } else {
+                    calcModel.displayedNum = calcModel.displayedNum + key.toString()
+                } 
+
+                calcModel.previousKeyType = 'number';
+            }
+
+            $scope.operator = function (operator) {
+                if(calcModel.firstValue && calcModel.previousKeyType !== 'operator' && calcModel.previousKeyType !== 'calculate') {
+                    var calcValue = calcModel.calculate(calcModel.firstValue, calcModel.operator, calcModel.displayedNum);
+                    calcModel.firstValue = calcValue;
+                    calcModel.displayedNum = calcValue.toString();
+                    calcModel.operator =  operator;
+                } else {
+                    calcModel.firstValue = calcModel.displayedNum;
+                    calcModel.operator =  operator;
+                }
+                calcModel.previousKeyType = 'operator';
+            }
+
+            $scope.equal = function () {
+                if ( calcModel.firstValue && calcModel.operator && calcModel.previousKeyType !== 'operator' ) {
+                    calcModel.firstValue = calcModel.calculate(calcModel.firstValue, calcModel.operator, calcModel.displayedNum)
+                } else {
+                    calcModel.firstValue = calcModel.displayedNum
+                }
+                calcModel.displayedNum = calcModel.firstValue.toString();
+                calcModel.previousKeyType = 'calculate'
+            }
+
+            $scope.decimal = function () {
+                if (calcModel.previousKeyType === 'operator' || calcModel.previousKeyType === 'calculate'){
+                        calcModel.displayedNum = '0.' 
+                } else {
+                    if(calcModel.displayedNum.indexOf('.') == -1) {
+                        calcModel.displayedNum = calcModel.displayedNum + '.'
+                    }
+                }
+                
+                calcModel.previousKeyType = 'number';
+            }
+
+            $scope.clear = function () {
+                calcModel.reset();
+            }
+        }]);
+    </script>
+</body>
+</html>
